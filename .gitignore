@@ -1,0 +1,22 @@
+# API keys & secrets
+.env
+send_report.sh
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+report.log
+
+# Debug
+_hashtag_debug.json
