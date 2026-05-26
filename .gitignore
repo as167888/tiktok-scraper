@@ -1,6 +1,8 @@
 # API keys & secrets
 .env
 send_report.sh
+send_summary.py
+daily_pipeline.sh
 
 # Python
 __pycache__/
