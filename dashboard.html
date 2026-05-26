@@ -300,10 +300,9 @@ let charts = {};
 
 // ===== HELPERS =====
 function fmt(n) {
-  if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
-  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
-  return n.toString();
+  if (Math.abs(n) >= 1e8) return (n/1e8).toFixed(2) + '亿';
+  if (Math.abs(n) >= 1e4) return (n/1e4).toFixed(2) + '万';
+  return n.toLocaleString();
 }
 
 function fmtChange(diff) {
@@ -377,24 +376,41 @@ function prepareAccountSeries(metric) {
   });
 }
 
+function yBounds(datasets) {
+  let min = Infinity, max = -Infinity;
+  datasets.forEach(ds => ds.data.forEach(p => {
+    if (p.y < min) min = p.y;
+    if (p.y > max) max = p.y;
+  }));
+  if (!isFinite(min)) return {min:0, max:1};
+  return {min, max};
+}
+
 function renderAccountCharts() {
-  // Destroy existing
   ['followers','likes','videos'].forEach(k => { if (charts[k]) charts[k].destroy(); });
+
+  var fDatasets = prepareAccountSeries('followers');
+  var lDatasets = prepareAccountSeries('likes');
+  var vDatasets = prepareAccountSeries('video_count');
+
+  var fBounds = yBounds(fDatasets);
+  var lBounds = yBounds(lDatasets);
+  var vBounds = yBounds(vDatasets);
 
   charts.followers = new Chart(document.getElementById('chart-followers'), {
     type: 'line',
-    data: { datasets: prepareAccountSeries('followers') },
-    options: chartOptions('粉丝数')
+    data: { datasets: fDatasets },
+    options: chartOptions('粉丝数', fBounds.min, fBounds.max)
   });
   charts.likes = new Chart(document.getElementById('chart-likes'), {
     type: 'line',
-    data: { datasets: prepareAccountSeries('likes') },
-    options: chartOptions('点赞数')
+    data: { datasets: lDatasets },
+    options: chartOptions('点赞数', lBounds.min, lBounds.max)
   });
   charts.videos = new Chart(document.getElementById('chart-videos'), {
     type: 'line',
-    data: { datasets: prepareAccountSeries('video_count') },
-    options: chartOptions('视频数')
+    data: { datasets: vDatasets },
+    options: chartOptions('视频数', vBounds.min, vBounds.max)
   });
 }
 
@@ -418,19 +434,26 @@ function prepareHashtagSeries(metric) {
 function renderHashtagCharts() {
   ['hviews','hvideos'].forEach(k => { if (charts[k]) charts[k].destroy(); });
 
+  var vwDatasets = prepareHashtagSeries('view_count');
+  var viDatasets = prepareHashtagSeries('video_count');
+
+  var vwBounds = yBounds(vwDatasets);
+  var viBounds = yBounds(viDatasets);
+
   charts.hviews = new Chart(document.getElementById('chart-hviews'), {
     type: 'line',
-    data: { datasets: prepareHashtagSeries('view_count') },
-    options: chartOptions('播放量')
+    data: { datasets: vwDatasets },
+    options: chartOptions('播放量', vwBounds.min, vwBounds.max)
   });
   charts.hvideos = new Chart(document.getElementById('chart-hvideos'), {
     type: 'line',
-    data: { datasets: prepareHashtagSeries('video_count') },
-    options: chartOptions('视频数')
+    data: { datasets: viDatasets },
+    options: chartOptions('视频数', viBounds.min, viBounds.max)
   });
 }
 
-function chartOptions(yLabel) {
+function chartOptions(yLabel, yMin, yMax) {
+  var range = yMax - yMin || 1;
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -457,6 +480,8 @@ function chartOptions(yLabel) {
         grid: { color: '#1e293b' }
       },
       y: {
+        min: yMin - range * 0.1,
+        max: yMax + range * 0.1,
         ticks: { color: '#64748b', callback: v => fmt(v) },
         grid: { color: '#1e293b' }
       }
