@@ -364,6 +364,7 @@ function prepareAccountSeries(metric) {
   let filterList = currentAccountFilter === 'all' ? ACCOUNTS : [currentAccountFilter];
   return filterList.map(acc => {
     let rows = accountData.filter(r => r.username === acc);
+    rows.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
     return {
       label: acc,
       data: rows.map(r => ({x: dayLabel(r.timestamp), y: r[metric]})),
@@ -386,6 +387,12 @@ function yBounds(datasets) {
   return {min, max};
 }
 
+function sortedLabels(datasets) {
+  var set = new Set();
+  datasets.forEach(ds => ds.data.forEach(p => set.add(p.x)));
+  return Array.from(set).sort();
+}
+
 function renderAccountCharts() {
   ['followers','likes','videos'].forEach(k => { if (charts[k]) charts[k].destroy(); });
 
@@ -399,17 +406,17 @@ function renderAccountCharts() {
 
   charts.followers = new Chart(document.getElementById('chart-followers'), {
     type: 'line',
-    data: { datasets: fDatasets },
+    data: { labels: sortedLabels(fDatasets), datasets: fDatasets },
     options: chartOptions('粉丝数', fBounds.min, fBounds.max)
   });
   charts.likes = new Chart(document.getElementById('chart-likes'), {
     type: 'line',
-    data: { datasets: lDatasets },
+    data: { labels: sortedLabels(lDatasets), datasets: lDatasets },
     options: chartOptions('点赞数', lBounds.min, lBounds.max)
   });
   charts.videos = new Chart(document.getElementById('chart-videos'), {
     type: 'line',
-    data: { datasets: vDatasets },
+    data: { labels: sortedLabels(vDatasets), datasets: vDatasets },
     options: chartOptions('视频数', vBounds.min, vBounds.max)
   });
 }
@@ -419,6 +426,7 @@ function prepareHashtagSeries(metric) {
   let filterList = currentHashtagFilter === 'all' ? HASHTAGS : [currentHashtagFilter];
   return filterList.map(h => {
     let rows = hashtagData.filter(r => r.hashtag === h);
+    rows.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
     return {
       label: '#' + h,
       data: rows.map(r => ({x: dayLabel(r.timestamp), y: r[metric]})),
@@ -442,12 +450,12 @@ function renderHashtagCharts() {
 
   charts.hviews = new Chart(document.getElementById('chart-hviews'), {
     type: 'line',
-    data: { datasets: vwDatasets },
+    data: { labels: sortedLabels(vwDatasets), datasets: vwDatasets },
     options: chartOptions('播放量', vwBounds.min, vwBounds.max)
   });
   charts.hvideos = new Chart(document.getElementById('chart-hvideos'), {
     type: 'line',
-    data: { datasets: viDatasets },
+    data: { labels: sortedLabels(viDatasets), datasets: viDatasets },
     options: chartOptions('视频数', viBounds.min, viBounds.max)
   });
 }
