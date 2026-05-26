@@ -10,7 +10,6 @@ TikTok 数据抓取工具 — 基于 Apify + TikHub
     python main.py bulk hashtags topic1,topic2      # 批量查话题
     python main.py track                  # 抓取追踪账号列表，保存到 CSV
     python main.py track_hashtags         # 抓取追踪话题列表，保存到 CSV
-    python main.py analyze                # 分析历史数据变化趋势（DeepSeek AI 点评）
 """
 
 import argparse
@@ -25,7 +24,6 @@ if hasattr(sys.stdout, "buffer"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 from tiktok_scraper import TikTokScraper
-from analysis import run_analysis
 from config import APIFY_API_TOKEN, PROXY_URL, TRACKING_ACCOUNTS, TRACKING_HASHTAGS, CSV_FILE, HASHTAG_CSV_FILE
 
 
@@ -168,7 +166,6 @@ def run_cli():
 
     sub.add_parser("track", help="抓取追踪账号列表并保存到 CSV")
     sub.add_parser("track_hashtags", help="抓取追踪话题列表并保存到 CSV")
-    sub.add_parser("analyze", help="分析历史数据变化趋势（DeepSeek AI 点评）")
 
     args = parser.parse_args()
     proxy = getattr(args, "proxy", None) or PROXY_URL or None
@@ -201,8 +198,6 @@ def run_cli():
         do_track_accounts(proxy)
     elif args.command == "track_hashtags":
         do_track_hashtags(proxy)
-    elif args.command == "analyze":
-        print(run_analysis())
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -227,12 +222,6 @@ def run_default():
 
     do_track_accounts(proxy)
     do_track_hashtags(proxy)
-
-    print()
-    try:
-        print(run_analysis())
-    except Exception as e:
-        print(f"\n[分析模块错误] {e}")
 
     print("\n全部抓取完成。")
 
